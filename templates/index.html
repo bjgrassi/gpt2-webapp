@@ -4,36 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPT-2 Text Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <div class="container">
-        <h1>GPT-2 Text Generator</h1>
-        <form method="POST" action="/">
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">GPT-2 Text Generator</h1>
+        <form method="POST" action="/" class="space-y-6">
             <div class="form-group">
-                <label for="prompt">Enter your prompt:</label>
-                <textarea id="prompt" name="prompt" rows="5" required></textarea>
+                <label for="prompt" class="block text-gray-700 text-lg font-semibold mb-2">Enter your prompt:</label>
+                <textarea id="prompt" name="prompt" rows="5" required
+                          class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 resize-y"
+                          placeholder="E.g., Write a short story about a futuristic city..."></textarea>
             </div>
-            
+
             <div class="form-group">
-                <label>Select model type:</label>
-                <div class="radio-group">
-                    <label>
-                        <input type="radio" name="model_type" value="pretrained" checked>
+                <label class="block text-gray-700 text-lg font-semibold mb-3">Select model type:</label>
+                <div class="radio-group flex flex-col sm:flex-row sm:justify-around gap-4">
+                    <label class="flex items-center text-gray-700 text-base cursor-pointer p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors duration-200">
+                        <input type="radio" name="model_type" value="pretrained" checked
+                               class="form-radio h-5 w-5 text-blue-600 focus:ring-blue-500 mr-2">
                         Pretrained GPT-2
                     </label>
-                    <label>
-                        <input type="radio" name="model_type" value="finetuned">
+                    <label class="flex items-center text-gray-700 text-base cursor-pointer p-3 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors duration-200">
+                        <input type="radio" name="model_type" value="finetuned"
+                               class="form-radio h-5 w-5 text-green-600 focus:ring-green-500 mr-2">
                         Fine-tuned GPT-2
                     </label>
-                    <label>
-                        <input type="radio" name="model_type" value="early_exit">
+                    <label class="flex items-center text-gray-700 text-base cursor-pointer p-3 bg-purple-50 rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors duration-200">
+                        <input type="radio" name="model_type" value="early_exit"
+                               class="form-radio h-5 w-5 text-purple-600 focus:ring-purple-500 mr-2">
                         Early-exit GPT-2
                     </label>
                 </div>
             </div>
-            
-            <button type="submit">Generate Text</button>
+
+            <button type="submit"
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Generate Text
+            </button>
         </form>
     </div>
 </body>
