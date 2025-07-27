@@ -1,11 +1,11 @@
-# batch-pdf-flask
+# GPT2 Webapp
 ## 1. If you're cloning this repo for the first time
 ### 1.1. Check if you have python installed. 
 `python --version`
 
 It must be 3.11.0
 
-### 1.2. Create and activate the virtual environment
+### 1.2. (Windows) Create and activate the virtual environment 
 
 ```
 py -3 -m venv .venv
@@ -25,7 +25,7 @@ flask --app main run --debug
 Will show messages on the terminal. Look for the "Running on http://127.0.0.1:5000" to open the app.
 Every change you do in the code, reload the browser.
 
-## 2. If you already have the app in your computer, just run the application
+## 2. (Windows) If you already have the app in your computer, just run the application
 ```
 .venv\Scripts\activate
 flask --app main run --debug
