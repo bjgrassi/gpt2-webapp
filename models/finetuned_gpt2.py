@@ -144,7 +144,7 @@ class GPT(nn.Module):
         """Loads pretrained GPT-2 model weights from huggingface"""
         assert model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         from transformers import GPT2LMHeadModel
-        print("loading weights from pretrained gpt: %s" % model_type)
+        print("loading weights from finetuned gpt: %s" % model_type)
 
         # n_layer, n_head and n_embd are determined from model_type
         config_args = {
@@ -250,9 +250,10 @@ if __name__ == '__main__':
 
     # Training loop
     num_epochs = 1  # Adjust as needed
+    num_steps = 100 # Adjust as needed
     for epoch in range(num_epochs):
         train_loader.current_position = 0  # Reset at the start of each epoch
-        for i in range(50):
+        for i in range(num_steps):
             x, y = train_loader.next_batch()
             x, y = x.to(device), y.to(device)
             optimizer.zero_grad()

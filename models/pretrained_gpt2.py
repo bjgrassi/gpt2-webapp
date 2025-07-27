@@ -244,7 +244,8 @@ if __name__ == '__main__':
     # optimize!
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
 
-    for i in range(50):
+    num_steps = 100 # Adjust as needed
+    for i in range(num_steps):
         x, y = train_loader.next_batch()
         x, y = x.to(device), y.to(device)
         optimizer.zero_grad()

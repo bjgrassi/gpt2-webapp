@@ -176,14 +176,14 @@ class GPT(nn.Module):
         if targets is None:
             print(f"Input {'exited early at layer 9' if early_exit else 'processed through all layers'} (layer {exit_layer})")
         
-        return logits, loss
+        return logits, loss, exit_layer
 
     @classmethod
     def from_pretrained(cls, model_type):
         """Loads pretrained GPT-2 model weights from huggingface"""
         assert model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         from transformers import GPT2LMHeadModel
-        print("loading weights from pretrained gpt: %s" % model_type)
+        print("loading weights from early exit gpt: %s" % model_type)
 
         # n_layer, n_head and n_embd are determined from model_type
         config_args = {
@@ -296,9 +296,10 @@ if __name__ == '__main__':
 
     # Training loop
     num_epochs = 1  # Adjust as needed
+    num_steps = 100 # Adjust as needed
     for epoch in range(num_epochs):
         train_loader.current_position = 0  # Reset at the start of each epoch
-        for i in range(50):
+        for i in range(num_steps):
             x, y = train_loader.next_batch()
             x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
@@ -338,13 +339,15 @@ def generate_text(
     
     # Generate tokens
     generated = input_ids
+    exit_layers = []
     with torch.no_grad():
         for _ in range(max_length):
             # Truncate if sequence exceeds block_size
             idx_cond = generated if generated.size(1) <= model.config.block_size else generated[:, -model.config.block_size:]
             
             # Forward pass
-            logits, _ = model(idx_cond)
+            logits, _, exit_layer = model(idx_cond)
+            exit_layers.append(exit_layer)
             logits = logits[:, -1, :] / temperature
             
             # Top-k filtering
@@ -367,10 +370,16 @@ def generate_text(
     full_text = enc.decode(generated[0].tolist())
     
     # Remove prompt if you only want the completion
-    completion = full_text[len(prompt):].strip()
+    completion = full_text[len(prompt):].strip()    
+    # Calculate early exit statistics
+    early_exit_count = sum(1 for layer in exit_layers if layer == 9)
+    early_exit_ratio = early_exit_count / len(exit_layers) if exit_layers else 0
     
-    print(f"Prompt: '{prompt}'\nCompletion: '{completion}'\n")
-    return completion
+    print(f"Prompt: '{prompt}'\nCompletion: '{completion}'")
+    print(f"Exit layers: {exit_layers}")
+    print(f"Early exit ratio: {early_exit_ratio:.2%}\n")
+    
+    return completion, exit_layers, early_exit_ratio
 
 # Example usage
 # prompts = [

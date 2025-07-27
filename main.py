@@ -12,7 +12,7 @@ models = {
 
 def get_models():
     if not hasattr(get_models, 'loaded_models'):
-        print("\n⭐️ INITIALIZING MODELS (This should happen ONCE) ⭐️")
+        print("\n⭐️ INITIALIZING MODELS ⭐️")
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
         # Lazy imports - only import when needed
@@ -43,18 +43,25 @@ def index():
     if request.method == 'POST':
         prompt = request.form['prompt']
         model_type = request.form['model_type']
+        exit_layers = []
+        early_exit_ratio = 0.0
         
         try:
             generate_func = models["_generate_functions"].get(model_type)
             if generate_func:
-                generated_text = generate_func(models[model_type], prompt)
+                if model_type == 'early_exit':
+                    generated_text, exit_layers, early_exit_ratio = generate_func(models[model_type], prompt)
+                else:
+                    generated_text = generate_func(models[model_type], prompt)
             else:
                 generated_text = "Invalid model selection"
                 
             return render_template('result.html', 
                                 prompt=prompt, 
                                 generated_text=generated_text, 
-                                model_type=model_type)
+                                model_type=model_type,
+                                exit_layers=exit_layers,
+                                early_exit_ratio=early_exit_ratio)
         except Exception as e:
             return f"Error: {str(e)}"
     

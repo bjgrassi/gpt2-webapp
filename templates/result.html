@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Text</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -32,6 +30,17 @@
                 <h3 class="font-semibold text-xl text-gray-700 mb-2">Generated Text:</h3>
                 <p class="text-gray-800 leading-relaxed bg-white p-4 rounded-md border border-gray-200 whitespace-pre-wrap">{{ generated_text }}</p>
             </div>
+
+            {# New div for Early Exit Information #}
+            {% if model_type == 'early_exit' %}
+            <div class="mt-6">
+                <h3 class="font-semibold text-xl text-gray-700 mb-2">Early Exit Information:</h3>
+                <div class="bg-white p-4 rounded-md border border-gray-200">
+                    <p class="text-gray-800 leading-relaxed"><strong>Exit Layers:</strong> {{ exit_layers }}</p>
+                    <p class="text-gray-800 leading-relaxed"><strong>Early Exit Ratio:</strong> {{ early_exit_ratio }}</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="flex justify-center mt-8">
