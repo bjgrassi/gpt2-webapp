@@ -3,7 +3,7 @@
 ### 1.1. Check if you have python installed. 
 `python --version`
 
-It must be 3.11.0
+## It must be 3.11.0
 
 ### 1.2. (Windows) Create and activate the virtual environment 
 
@@ -11,6 +11,8 @@ It must be 3.11.0
 py -3 -m venv .venv
 .venv\Scripts\activate
 ```
+
+For macOS/Linux check: https://flask.palletsprojects.com/en/stable/installation/#install-flask 
 
 ### 1.3. Install the requirements (the libraries used on the app)
 ```
@@ -30,6 +32,8 @@ Every change you do in the code, reload the browser.
 .venv\Scripts\activate
 flask --app main run --debug
 ```
+
+For macOS/Linux check: https://flask.palletsprojects.com/en/stable/installation/#install-flask 
 
 ## If you added a new library, save on the requirements.txt
 `pip3 freeze > requirements.txt`
