@@ -50,9 +50,9 @@ def index():
             generate_func = models["_generate_functions"].get(model_type)
             if generate_func:
                 if model_type == 'early_exit':
-                    generated_text, exit_layers, early_exit_ratio = generate_func(models[model_type], prompt)
+                    generated_text, measurements, exit_layers, early_exit_ratio = generate_func(models[model_type], prompt)
                 else:
-                    generated_text = generate_func(models[model_type], prompt)
+                    generated_text, measurements = generate_func(models[model_type], prompt)
             else:
                 generated_text = "Invalid model selection"
                 
@@ -61,7 +61,8 @@ def index():
                                 generated_text=generated_text, 
                                 model_type=model_type,
                                 exit_layers=exit_layers,
-                                early_exit_ratio=early_exit_ratio)
+                                early_exit_ratio=early_exit_ratio,
+                                measurements=measurements)
         except Exception as e:
             return f"Error: {str(e)}"
     

@@ -13,6 +13,95 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import psutil
+import time
+from typing import List, Dict
+
+@dataclass
+class MeasurementResult:
+    component_name: str
+    memory_usage_mb: float
+    cpu_usage_percent: float
+    inference_time_ms: float
+
+def measure_component(model: torch.nn.Module, input_tensor: torch.Tensor, component_name: str) -> MeasurementResult:
+    """
+    Measure memory, CPU usage, and inference time of a specific component.
+    """
+    process = psutil.Process()
+
+    # Warm-up (ensure stable measurements)
+    with torch.no_grad():
+        _ = model(input_tensor)
+
+    # Memory measurement
+    mem_before = process.memory_info().rss / (1024 * 1024)  # MB
+    cpu_before = process.cpu_percent(interval=None)
+
+    start_time = time.perf_counter()
+
+    with torch.no_grad():
+        _ = model(input_tensor)
+
+    inference_time_ms = (time.perf_counter() - start_time) * 1000
+    cpu_after = process.cpu_percent(interval=None)
+    mem_after = process.memory_info().rss / (1024 * 1024)  # MB
+
+    return MeasurementResult(
+        component_name=component_name,
+        memory_usage_mb=mem_after - mem_before,
+        cpu_usage_percent=cpu_after - cpu_before,
+        inference_time_ms=inference_time_ms
+    )
+
+def measure_gpt2_components(model: torch.nn.Module, input_tensor: torch.Tensor) -> List[MeasurementResult]:
+    """
+    Measure each transformer block and feed-forward components in GPT-2.
+    """
+    results = []
+
+    # Measure embedding layer
+    embedding_layer = model.transformer.wte
+    results.append(measure_component(embedding_layer, input_tensor, "Embedding Layer"))
+
+    # Measure positional embeddings
+    pos_embeddings = model.transformer.wpe
+    pos_tensor = torch.arange(input_tensor.size(1), device=input_tensor.device)
+    results.append(measure_component(pos_embeddings, pos_tensor, "Positional Embeddings"))
+
+    # Measure each transformer block
+    for i, block in enumerate(model.transformer.h):
+        # Clone input to avoid modifying original
+        x = input_tensor.clone()
+
+        # Measure attention component
+        attn_result = measure_component(block.attn, block.ln_1(x), f"Block {i} - Attention")
+        results.append(attn_result)
+
+        # Measure MLP component
+        mlp_result = measure_component(block.mlp, block.ln_2(x), f"Block {i} - MLP")
+        results.append(mlp_result)
+
+    # Measure final layer norm and head
+    final_ln = model.transformer.ln_f
+    lm_head = model.lm_head
+    x = input_tensor.clone()
+    results.append(measure_component(final_ln, x, "Final LayerNorm"))
+    results.append(measure_component(lm_head, final_ln(x), "LM Head"))
+
+    return results
+
+def print_measurements(results: List[MeasurementResult]):
+    """Print measurement results in a formatted table."""
+    print("\nComponent-wise Measurements:")
+    print("-" * 90)
+    print(f"{'Component':<30} | {'Memory (MB)':>12} | {'CPU Usage (%)':>12} | {'Time (ms)':>12}")
+    print("-" * 90)
+
+    for result in results:
+        print(f"{result.component_name:<30} | {result.memory_usage_mb:>12.2f} | "
+              f"{result.cpu_usage_percent:>12.2f} | {result.inference_time_ms:>12.4f}")
+    print("-" * 90)
 
 # -----------------------------------------------------------------------------
 
@@ -378,8 +467,50 @@ def generate_text(
     print(f"Prompt: '{prompt}'\nCompletion: '{completion}'")
     print(f"Exit layers: {exit_layers}")
     print(f"Early exit ratio: {early_exit_ratio:.2%}\n")
+
+    # Create proper input for measurements
+    # Use long integers for embedding indices
+    input_tensor = torch.randint(0, model.config.vocab_size, (1, 32), dtype=torch.long, device=device)
     
-    return completion, exit_layers, early_exit_ratio
+    # Get position indices
+    pos_tensor = torch.arange(0, 32, dtype=torch.long, device=device)
+    
+    # Measure components
+    measurements = []
+    
+    # Measure embedding layer
+    with torch.no_grad():
+        tok_emb = model.transformer.wte(input_tensor)  # (1, 32, n_embd)
+        pos_emb = model.transformer.wpe(pos_tensor)  # (32, n_embd)
+        x = tok_emb + pos_emb.unsqueeze(0)  # (1, 32, n_embd)
+    
+    # Measure embedding components
+    measurements.append(measure_component(model.transformer.wte, input_tensor, "Embedding Layer"))
+    measurements.append(measure_component(model.transformer.wpe, pos_tensor, "Positional Embeddings"))
+    
+    # Measure each transformer block
+    for i, block in enumerate(model.transformer.h):
+        # Clone input to avoid modifying original
+        x_clone = x.clone()
+        
+        # Measure attention component
+        ln1_out = block.ln_1(x_clone)
+        measurements.append(measure_component(block.attn, ln1_out, f"Block {i} - Attention"))
+        
+        # Measure MLP component
+        ln2_out = block.ln_2(x_clone)
+        measurements.append(measure_component(block.mlp, ln2_out, f"Block {i} - MLP"))
+        
+        # Update x for next block
+        x = block(x_clone)
+    
+    # Measure final components
+    measurements.append(measure_component(model.transformer.ln_f, x, "Final LayerNorm"))
+    measurements.append(measure_component(model.lm_head, model.transformer.ln_f(x), "LM Head"))
+    
+    print_measurements(measurements)
+    print(f"Prompt: '{prompt}'\nCompletion: '{completion}'\n")
+    return completion, measurements, exit_layers, early_exit_ratio
 
 # Example usage
 # prompts = [

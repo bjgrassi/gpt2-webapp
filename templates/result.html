@@ -30,6 +30,35 @@
                 <h3 class="font-semibold text-xl text-gray-700 mb-2">Generated Text:</h3>
                 <p class="text-gray-800 leading-relaxed bg-white p-4 rounded-md border border-gray-200 whitespace-pre-wrap">{{ generated_text }}</p>
             </div>
+            
+            {# Table for Measurements #}
+            {% if measurements %}
+            <div>
+                <h3 class="font-semibold text-xl text-gray-700 mb-2">Measurements:</h3>
+                <div class="bg-white p-4 rounded-md border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Component Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memory Usage (MB)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPU Usage (%)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inference Time (ms)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for measurement in measurements %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ measurement.component_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ "%.3f"|format(measurement.memory_usage_mb) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ "%.2f"|format(measurement.cpu_usage_percent) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ "%.3f"|format(measurement.inference_time_ms) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
 
             {# New div for Early Exit Information #}
             {% if model_type == 'early_exit' %}
@@ -37,7 +66,7 @@
                 <h3 class="font-semibold text-xl text-gray-700 mb-2">Early Exit Information:</h3>
                 <div class="bg-white p-4 rounded-md border border-gray-200">
                     <p class="text-gray-800 leading-relaxed"><strong>Exit Layers:</strong> {{ exit_layers }}</p>
-                    <p class="text-gray-800 leading-relaxed"><strong>Early Exit Ratio:</strong> {{ early_exit_ratio }}</p>
+                    <p class="text-gray-800 leading-relaxed"><strong>Early Exit Ratio:</strong> {{ "%.2f"|format(early_exit_ratio) }}</p>
                 </div>
             </div>
             {% endif %}
