@@ -3,7 +3,6 @@ import torch
 
 app = Flask(__name__)
 
-# Initialize models as None
 models = {
     "pretrained": None,
     "finetuned": None,
@@ -15,7 +14,6 @@ def get_models():
         print("\n⭐️ INITIALIZING MODELS ⭐️")
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        # Lazy imports - only import when needed
         from models.pretrained_gpt2 import GPT as PretrainedGPT, generate_text as pretrained_generate
         from models.finetuned_gpt2 import GPT as FinetunedGPT, generate_text as finetuned_generate
         from models.early_exit_gpt2 import GPT as EarlyExitGPT, generate_text as early_exit_generate
@@ -24,7 +22,6 @@ def get_models():
         models["finetuned"] = FinetunedGPT.from_pretrained("gpt2").to(device)
         models["early_exit"] = EarlyExitGPT.from_pretrained("gpt2").to(device)
         
-        # Store the generate functions too
         models["_generate_functions"] = {
             "pretrained": pretrained_generate,
             "finetuned": finetuned_generate,
